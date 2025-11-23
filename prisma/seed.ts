@@ -33,6 +33,15 @@ function randomDate(start: Date, end: Date): Date {
 async function main() {
   console.log('🌱 Seeding database with comprehensive data...\n');
 
+  // Check if database is already seeded
+  const existingUsers = await prisma.user.count();
+  if (existingUsers > 0) {
+    console.log('✅ Database already seeded. Skipping seed process.');
+    console.log(`   Found ${existingUsers} existing users.\n`);
+    console.log('💡 To reseed, run: npx prisma migrate reset\n');
+    return;
+  }
+
   // 1. Hash password for all demo accounts
   console.log('🔐 Hashing demo passwords...');
   const hashedPassword = await bcrypt.hash('password', 10);

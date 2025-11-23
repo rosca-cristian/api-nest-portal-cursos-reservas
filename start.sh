@@ -6,9 +6,8 @@ set -e
 echo "🗄️  Running database migrations..."
 npx prisma migrate deploy
 
-echo "🌱 Seeding database (if needed)..."
-# Uncomment the next line if you want to seed on first deploy
-# npx prisma db seed
+echo "🌱 Seeding database (automatic, idempotent)..."
+npx prisma db seed || echo "⚠️  Seeding skipped or failed (non-critical)"
 
 echo "🚀 Starting application..."
 npm run start:prod

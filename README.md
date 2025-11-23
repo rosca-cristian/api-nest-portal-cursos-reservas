@@ -442,18 +442,20 @@ git push -u origin main
    - Wait for deployment to complete
    - Your API will be available at: `https://YOUR_APP_NAME.onrender.com`
 
-### Step 3: Seed Database (Optional)
+### Step 3: Database Seeding (Automatic)
 
-After first deployment, you can seed the database with demo data:
+The database will be automatically seeded on first deployment with demo data:
+- 16 demo users (students, faculty, admin)
+- 40 courses (20 programming + 20 AI/ML)
+- Sample enrollments and reservations
+- 4 library floors with 48 spaces
 
+**The seed is idempotent**: If the database already has data, the seed will skip automatically. This means every deployment will safely run the seed command without duplicating data.
+
+To manually reseed the database (WARNING: deletes all data):
 1. Go to your Render web service dashboard
 2. Click on "Shell" tab
-3. Run: `npx prisma db seed`
-
-This will populate your database with:
-- 16 demo users (students, faculty, admin)
-- 40 courses
-- Sample enrollments and reservations
+3. Run: `npx prisma migrate reset`
 
 ### Step 4: Test Your API
 
@@ -467,17 +469,19 @@ This will populate your database with:
 
 1. **Database Migrations:** Migrations run automatically on each deployment via `npx prisma migrate deploy`
 
-2. **Environment Variables:** Never commit `.env` file to GitHub. Always use Render's environment variable settings.
+2. **Automatic Seeding:** The database is seeded automatically on first deployment. The seed script is idempotent and will not duplicate data on subsequent deployments.
 
-3. **Free Tier Limitations:**
+3. **Environment Variables:** Never commit `.env` file to GitHub. Always use Render's environment variable settings.
+
+4. **Free Tier Limitations:**
    - Render free tier spins down after 15 minutes of inactivity
    - First request after spin-down may take 30-60 seconds
    - Database has 256MB storage limit
    - Consider upgrading for production use
 
-4. **Database Backups:** Enable automatic backups in Render dashboard (available on paid plans)
+5. **Database Backups:** Enable automatic backups in Render dashboard (available on paid plans)
 
-5. **Monitoring:** Check Render logs for errors: Dashboard → Logs tab
+6. **Monitoring:** Check Render logs for errors: Dashboard → Logs tab
 
 ### Updating Your Deployment
 
