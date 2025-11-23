@@ -1,0 +1,30 @@
+services:
+  # Web Service - API Backend
+  - type: web
+    name: api-cursos-reservas
+    env: node
+    region: oregon
+    plan: free
+    branch: main
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npx prisma migrate deploy && npm run start:prod
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cursos-reservas-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PORT
+        value: 3000
+
+# Database - PostgreSQL
+databases:
+  - name: cursos-reservas-db
+    databaseName: cursos_reservas
+    region: oregon
+    plan: free
+    ipAllowList: []

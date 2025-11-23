@@ -1,0 +1,192 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  INSTRUCTOR
+  ADMIN
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id       String @id @default(uuid())
+  email    String @unique
+  name     String
+  password String
+  role     Role   @default(STUDENT)
+
+  // Space Reservation System fields (Story 1.1)
+  major      String? // For students
+  department String? // For faculty/admin
+  photoUrl   String? // Profile photo URL
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  coursesAsInstructor Course[]         @relation("InstructorCourses")
+  enrollments         Enrollment[]
+  reservations        Reservation[] // Story 3.1
+  participations      Participant[] // Story 3.1
+  auditLogs           AuditLogEntry[] // Story 7.1
+}
+
+model Course {
+  id           String   @id @default(uuid())
+  title        String
+  description  String
+  duration     Int // Duration in hours
+  category     String
+  instructorId String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  instructor  User         @relation("InstructorCourses", fields: [instructorId], references: [id], onDelete: Cascade)
+  enrollments Enrollment[]
+}
+
+model Enrollment {
+  id          String           @id @default(uuid())
+  userId      String
+  courseId    String
+  status      EnrollmentStatus @default(ACTIVE)
+  enrolledAt  DateTime         @default(now())
+  completedAt DateTime?
+
+  // Relations
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  certificate Certificate?
+
+  @@unique([userId, courseId])
+}
+
+model Certificate {
+  id           String   @id @default(uuid())
+  enrollmentId String   @unique
+  code         String   @unique
+  issuedAt     DateTime @default(now())
+
+  // Relations
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+}
+
+// Story 2.1: Space Reservation System - Floors and Spaces
+model Floor {
+  id       String @id @default(uuid())
+  name     String
+  svgPath  String
+  imageUrl String?
+  dimensions String? // JSON object as string { width, height }
+  building String
+
+  // Relations
+  spaces Space[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Space {
+  id                   String    @id @default(uuid())
+  name                 String
+  type                 String // 'desk' | 'group-room'
+  capacity             Int
+  minCapacity          Int
+  equipment            String // JSON array as string (SQLite limitation)
+  coordinates          String // JSON object as string { x, y, width, height }
+  photos               String // JSON array as string
+  description          String
+  floorId              String
+  availabilityStatus   String    @default("AVAILABLE") // 'AVAILABLE' | 'OCCUPIED' | 'UNAVAILABLE'
+  unavailabilityReason String?
+  unavailabilityStart  DateTime?
+  unavailabilityEnd    DateTime?
+
+  // Relations
+  floor        Floor         @relation(fields: [floorId], references: [id], onDelete: Cascade)
+  reservations Reservation[] // Story 3.1
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Story 3.1: Individual Reservations System
+model Reservation {
+  id                 String   @id @default(uuid())
+  spaceId            String
+  userId             String
+  startTime          DateTime
+  endTime            DateTime
+  status             String   @default("confirmed") // 'confirmed' | 'cancelled' | 'completed'
+  invitationToken    String?  @unique
+  notes              String?
+  cancelledBy        String? // 'user' | 'admin'
+  cancellationReason String?
+  cancellationNotes  String?
+
+  // Relations
+  space        Space         @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  participants Participant[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([spaceId, startTime, endTime])
+  @@index([userId])
+}
+
+model Participant {
+  id            String @id @default(uuid())
+  reservationId String
+  userId        String
+  role          String @default("participant") // 'organizer' | 'participant'
+  status        String @default("confirmed") // 'confirmed' | 'pending'
+
+  // Relations
+  reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([reservationId, userId])
+}
+
+// Story 7.1: Audit Log
+model AuditLogEntry {
+  id           String   @id @default(uuid())
+  timestamp    DateTime @default(now())
+  userId       String
+  userName     String
+  userEmail    String
+  actionType   String // 'CREATED' | 'JOINED' | 'MODIFIED' | 'CANCELLED' | 'ADMIN_CANCELLED' | 'COMPLETED'
+  resourceType String // 'reservation' | 'space' | 'user'
+  resourceId   String
+  details      String // JSON object as string
+  ipAddress    String?
+  userAgent    String?
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([timestamp])
+  @@index([userId])
+  @@index([actionType])
+  @@index([resourceType])
+}
