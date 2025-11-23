@@ -467,7 +467,7 @@ To manually reseed the database (WARNING: deletes all data):
 
 ### Important Notes for Production
 
-1. **Database Migrations:** Migrations run automatically on each deployment via `npx prisma migrate deploy`
+1. **Database Schema Sync:** The database schema is synced automatically on each deployment via `npx prisma db push`. This approach is used because the project was initially developed with SQLite and is now using PostgreSQL in production.
 
 2. **Automatic Seeding:** The database is seeded automatically on first deployment. The seed script is idempotent and will not duplicate data on subsequent deployments.
 
