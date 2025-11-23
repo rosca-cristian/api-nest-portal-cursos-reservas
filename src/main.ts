@@ -20,8 +20,10 @@ async function bootstrap() {
   });
 
   app.enableCors({
-    origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:3001'],
+    origin: 'https://portal-reservas.vercel.app',
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
   app.useGlobalFilters(new HttpExceptionFilter());
