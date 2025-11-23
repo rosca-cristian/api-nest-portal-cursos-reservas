@@ -1,0 +1,54 @@
+# Source files (only ship compiled JS)
+src/
+test/
+
+# TypeScript config
+tsconfig.json
+tsconfig.build.json
+
+# Test files
+*.spec.ts
+*.e2e-spec.ts
+jest.config.js
+jest-e2e.json
+
+# Development tools
+.prettierrc
+.eslintrc.js
+eslint.config.mjs
+nest-cli.json
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.*
+
+# Documentation
+README.md
+
+# Build scripts (if not needed in production)
+build.sh
+start.sh
+
+# Database
+*.db
+*.db-journal
+prisma/migrations/
+prisma/seed.ts
+
+# Coverage
+coverage/
+.nyc_output/
